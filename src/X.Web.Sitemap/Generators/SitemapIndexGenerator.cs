@@ -23,6 +23,12 @@ public interface ISitemapIndexGenerator
 	/// <param name="targetDirectory">The path to the directory where you'd like the sitemap index file to be written. (e.g. "C:\sitemaps\" or "\\myserver\sitemaplocation\".</param>
 	/// <param name="targetSitemapIndexFileName">The name of the sitemap to be generated (e.g. "sitemapindex.xml")</param>
 	SitemapIndex GenerateSitemapIndex(IEnumerable<SitemapInfo> sitemaps, string targetDirectory, string targetSitemapIndexFileName);
+
+    /// <summary>
+    /// Creates a sitemap index file for the specified sitemaps.
+    /// </summary>
+    /// <param name="sitemaps">The sitemaps in include in the sitemap index.</param>
+    SitemapIndex GenerateSitemapIndex(IEnumerable<SitemapInfo> sitemaps);
 }
 
 [PublicAPI]
@@ -45,8 +51,8 @@ public class SitemapIndexGenerator : ISitemapIndexGenerator
 
 	public SitemapIndex GenerateSitemapIndex(IEnumerable<SitemapInfo> sitemaps, DirectoryInfo targetDirectory, string targetSitemapFileName)
 	{
-		var sitemapIndex = new SitemapIndex(sitemaps);
-		var serializer = new XmlSerializer(typeof(SitemapIndex));
+		var sitemapIndex = GenerateSitemapIndex(sitemaps);
+        var serializer = new XmlSerializer(typeof(SitemapIndex));
 
 		using (var textWriter = new StringWriterUtf8())
 		{
@@ -60,4 +66,10 @@ public class SitemapIndexGenerator : ISitemapIndexGenerator
 		
 		return sitemapIndex;
 	}
+
+    public SitemapIndex GenerateSitemapIndex(IEnumerable<SitemapInfo> sitemaps)
+    {
+        var sitemapIndex = new SitemapIndex(sitemaps);
+        return sitemapIndex;
+    }
 }

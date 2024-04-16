@@ -8,6 +8,23 @@ namespace X.Web.Sitemap;
 
 [PublicAPI]
 [Serializable]
+[Description("Provides a way to indicate alternate language versions of a URL.")]
+[XmlRoot(ElementName = "url")]
+[XmlType("link")]
+public class Link
+{
+    [XmlAttribute("rel")]
+    public string Rel { get; set; } = "alternate";
+
+    [XmlAttribute("hreflang")]
+    public string HrefLang { get; set; }
+
+    [XmlAttribute("href")]
+    public string Href { get; set; }
+}
+
+[PublicAPI]
+[Serializable]
 [Description("Encloses all information about a single image. Each URL (<loc> tag) can include up to 1,000 <image:image> tags.")]
 [XmlRoot(ElementName = "image", Namespace = "http://www.google.com/schemas/sitemap-image/1.1")]
 public class Image
@@ -42,6 +59,12 @@ public class Url
     [XmlElement("loc")]
     public string Location { get; set; }
 
+    /// <summary>
+    ///  List to support multiple alternate links
+    /// </summary>
+    [XmlElement(ElementName = "link", Namespace = "http://www.w3.org/1999/xhtml")]
+    public List<Link> Links { get; set; }
+
     [XmlElement(ElementName = "image", Namespace = "http://www.google.com/schemas/sitemap-image/1.1")]
     public List<Image> Images { get; set; }
 
@@ -68,8 +91,9 @@ public class Url
     public Url()
     {
         Location = "";
-        Images = new List<Image>();
-        Location = "";
+        Images = [];
+        Links = [];
+
     }
 
     public static Url CreateUrl(string location) => CreateUrl(location, DateTime.Now);

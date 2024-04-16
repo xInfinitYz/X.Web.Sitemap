@@ -12,7 +12,7 @@ public interface ISitemapGenerator
     /// Creates one or more sitemaps based on the number of Urls passed in. As of 2016, the maximum number of
     /// urls per sitemap is 50,000 and the maximum file size is 50MB. See https://www.sitemaps.org/protocol.html
     /// for current standards. Filenames will be sitemap-001.xml, sitemap-002.xml, etc.
-    /// Returns a list of FileInfo objects for each sitemap that was created (e.g. for subsequent use in generating
+    /// Returns a IEnumerable of FileInfo objects for each sitemap that was created (e.g. for subsequent use in generating
     /// a sitemap index file)
     /// </summary>
     /// <param name="urls">
@@ -27,16 +27,16 @@ public interface ISitemapGenerator
     /// The base file name of the sitemap. For example, if you pick 'products' then it will generate
     /// files with names like products-001.xml, products-002.xml, etc.
     /// </param>
-    List<FileInfo> GenerateSitemaps(
+    IEnumerable<FileInfo> GenerateSitemaps(
         IEnumerable<Url> urls,
         DirectoryInfo targetDirectory,
         string sitemapBaseFileNameWithoutExtension = "sitemap");
-    
+
     /// <summary>
     /// Creates one or more sitemaps based on the number of Urls passed in. As of 2016, the maximum number of
     /// urls per sitemap is 50,000 and the maximum file size is 50MB. See https://www.sitemaps.org/protocol.html
     /// for current standards. Filenames will be sitemap-001.xml, sitemap-002.xml, etc.
-    /// Returns a list of FileInfo objects for each sitemap that was created (e.g. for subsequent use in generating
+    /// Returns a IEnumerable of FileInfo objects for each sitemap that was created (e.g. for subsequent use in generating
     /// a sitemap index file)
     /// </summary>
     /// <param name="urls">
@@ -51,10 +51,27 @@ public interface ISitemapGenerator
     /// The base file name of the sitemap. For example, if you pick 'products' then it will generate
     /// files with names like products-001.xml, products-002.xml, etc.
     /// </param>
-    List<FileInfo> GenerateSitemaps(
+    IEnumerable<FileInfo> GenerateSitemaps(
         IEnumerable<Url> urls,
         string targetDirectory,
         string sitemapBaseFileNameWithoutExtension = "sitemap");
+    /// <summary>
+    /// Creates one or more sitemaps based on the number of Urls passed in. As of 2016, the maximum number of
+    /// urls per sitemap is 50,000 and the maximum file size is 50MB. See https://www.sitemaps.org/protocol.html
+    /// for current standards. Filenames will be sitemap-001.xml, sitemap-002.xml, etc.
+    /// Returns an IEnumerable of KeyValuePair objects for each sitemap that was created (e.g. for subsequent use in generating
+    /// a sitemap index file)
+    /// </summary>
+    /// <param name="urls">
+    /// Urls to include in the sitemap(s). If the number of Urls exceeds 50,000 or the file size exceeds 50MB,
+    /// then multiple files
+    /// will be generated and multiple SitemapInfo objects will be returned.
+    /// </param>
+    /// <param name="sitemapBaseFileNameWithoutExtension">
+    /// The base file name of the sitemap. For example, if you pick 'products' then it will generate
+    /// files with names like products-001.xml, products-002.xml, etc.
+    /// </param>
+    IDictionary<string, Sitemap> GenerateInMemorySitemaps(IEnumerable<Url> urls, string sitemapBaseFileNameWithoutExtension = "sitemap");
 }
 
 public class SitemapGenerator : ISitemapGenerator
@@ -71,16 +88,31 @@ public class SitemapGenerator : ISitemapGenerator
         _serializer = new SitemapSerializer();
     }
 
-    public List<FileInfo> GenerateSitemaps(IEnumerable<Url> urls, string targetDirectory, string sitemapBaseFileNameWithoutExtension = "sitemap") => 
+    public IEnumerable<FileInfo> GenerateSitemaps(IEnumerable<Url> urls, string targetDirectory, string sitemapBaseFileNameWithoutExtension = "sitemap") => 
         GenerateSitemaps(urls, new DirectoryInfo(targetDirectory), sitemapBaseFileNameWithoutExtension);
 
-    public List<FileInfo> GenerateSitemaps(IEnumerable<Url> urls, DirectoryInfo targetDirectory, string sitemapBaseFileNameWithoutExtension = "sitemap")
+    public IEnumerable<FileInfo> GenerateSitemaps(IEnumerable<Url> urls, DirectoryInfo targetDirectory, string sitemapBaseFileNameWithoutExtension = "sitemap")
     {
         var sitemaps = BuildSitemaps(urls.ToList(), MaxNumberOfUrlsPerSitemap);
 
         var sitemapFileInfos = SaveSitemaps(targetDirectory, sitemapBaseFileNameWithoutExtension, sitemaps);
 
         return sitemapFileInfos;
+    }
+
+    public IDictionary<string, Sitemap> GenerateInMemorySitemaps(IEnumerable<Url> urls, string sitemapBaseFileNameWithoutExtension = "sitemap")
+    {
+        var sitemaps = BuildSitemaps(urls.ToList(), MaxNumberOfUrlsPerSitemap);
+
+        var allSitemaps = new Dictionary<string, Sitemap>();
+
+        for (var i = 0; i < sitemaps.Count; i++)
+        {
+            var fileName = $"{sitemapBaseFileNameWithoutExtension}-{i + 1}.xml";
+            allSitemaps.Add(fileName, sitemaps[i]);
+        }
+
+        return allSitemaps;
     }
 
     private static List<Sitemap> BuildSitemaps(IReadOnlyList<Url> urls, int maxNumberOfUrlsPerSitemap)

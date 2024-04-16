@@ -32,6 +32,7 @@ public class SitemapSerializer : ISitemapSerializer
 
         var namespaces = new XmlSerializerNamespaces();
         namespaces.Add("image", "http://www.google.com/schemas/sitemap-image/1.1");
+        namespaces.Add("xhtml", "http://www.w3.org/1999/xhtml");
 
         var settings = new XmlWriterSettings { Indent = true };
 
